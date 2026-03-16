@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Physics Gym — Coming Soon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090F;
+  --bg2:#0C101A;
+  --bg3:#111827;
+  --border:#1A2235;
+  --blue:#00B4FF;
+  --blue2:#0080CC;
+  --cyan:#00E5FF;
+  --gold:#FFB800;
+  --green:#00E676;
+  --red:#FF4757;
+  --text:#EEF2FF;
+  --muted:#4A5A72;
+  --sub:#8899BB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Manrope',sans-serif;
+  overflow-x:hidden;
+  cursor:default;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity:.025;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ── GLOW ORBS ── */
+.orb{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(120px);
+  pointer-events:none;
+  z-index:0;
+}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,180,255,.18),transparent 70%);top:-100px;left:-100px}
+.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(0,229,255,.1),transparent 70%);bottom:100px;right:-100px}
+.orb3{width:400px;height:400px;background:radial-gradient(circle,rgba(255,184,0,.08),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%)}
+
+/* ── ANIMATIONS ── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pulse-ring{0%{transform:scale(.85);opacity:.8}100%{transform:scale(1.15);opacity:0}}
+@keyframes spin-slow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes spin-rev{from{transform:rotate(360deg)}to{transform:rotate(0deg)}}
+@keyframes fade-up{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow-pulse{0%,100%{text-shadow:0 0 40px rgba(0,180,255,.4),0 0 80px rgba(0,180,255,.2)}50%{text-shadow:0 0 60px rgba(0,180,255,.7),0 0 120px rgba(0,180,255,.3)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes blink-dot{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── WRAPPER ── */
+.page{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 28px}
+
+/* ══════════════════════════════
+   NAV
+══════════════════════════════ */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(7,9,15,.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  max-width:1180px;margin:0 auto;padding:0 28px;
+  height:58px;display:flex;align-items:center;justify-content:space-between;
+}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(0,180,255,.08);
+  border:1px solid rgba(0,180,255,.25);
+  display:flex;align-items:center;justify-content:center;
+}
+.nav-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:#fff}
+.nav-badge{
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  padding:3px 9px;border-radius:20px;
+  background:rgba(0,180,255,.1);
+  border:1px solid rgba(0,180,255,.3);
+  color:var(--blue);
+}
+.nav-right{display:flex;align-items:center;gap:6px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#00E676;animation:blink-dot 2s ease infinite}
+.nav-stat{font-size:11px;color:var(--sub);font-family:'DM Mono',monospace}
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  padding:100px 0 60px;position:relative;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;
+  color:var(--blue);text-transform:uppercase;
+  padding:6px 16px;border-radius:30px;
+  background:rgba(0,180,255,.06);border:1px solid rgba(0,180,255,.2);
+  margin-bottom:32px;
+  animation:fade-up .6s ease both;
+}
+.hero-eyebrow span{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+
+/* Atom SVG */
+.atom-wrap{
+  position:relative;width:120px;height:120px;margin:0 auto 40px;
+  animation:float 4s ease-in-out infinite;
+}
+.atom-ring{
+  position:absolute;inset:0;
+  border-radius:50%;
+  border:1px solid rgba(0,180,255,.15);
+  animation:pulse-ring 2.5s ease-out infinite;
+}
+.atom-ring:nth-child(2){animation-delay:.8s}
+.atom-ring:nth-child(3){animation-delay:1.6s}
+
+.hero-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,10vw,130px);
+  letter-spacing:3px;
+  line-height:.92;
+  margin-bottom:28px;
+  animation:fade-up .7s .1s ease both;
+}
+.hero-title .line1{
+  display:block;color:#fff;
+  animation:glow-pulse 3s ease-in-out infinite;
+}
+.hero-title .line2{
+  display:block;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.hero-sub{
+  font-size:17px;color:var(--sub);line-height:1.75;
+  max-width:520px;margin:0 auto 40px;font-weight:400;
+  animation:fade-up .7s .2s ease both;
+}
+.hero-sub strong{color:var(--text);font-weight:600}
+
+.hero-cta{
+  display:flex;align-items:center;gap:12px;
+  animation:fade-up .7s .3s ease both;
+  flex-wrap:wrap;justify-content:center;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--blue);color:#000;
+  font-weight:800;font-size:14px;letter-spacing:.5px;
+  padding:14px 30px;border-radius:50px;
+  border:none;cursor:pointer;transition:all .2s;
+  text-decoration:none;
+}
+.btn-primary:hover{background:var(--cyan);transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,180,255,.35)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;
+  background:transparent;color:var(--sub);
+  font-weight:600;font-size:14px;
+  padding:14px 28px;border-radius:50px;
+  border:1px solid var(--border);cursor:pointer;transition:all .2s;
+}
+.btn-ghost:hover{color:var(--text);border-color:var(--sub)}
+
+/* Stats strip */
+.stats-strip{
+  display:flex;align-items:center;gap:0;
+  margin-top:64px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--bg2);
+  overflow:hidden;
+  animation:fade-up .7s .4s ease both;
+}
+.stat-item{
+  flex:1;padding:20px 24px;text-align:center;
+  border-right:1px solid var(--border);
+}
+.stat-item:last-child{border-right:none}
+.stat-val{
+  font-family:'Bebas Neue',sans-serif;font-size:38px;
+  letter-spacing:2px;line-height:1;
+  margin-bottom:4px;
+}
+.stat-lab{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:1px}
+
+/* ══════════════════════════════
+   TICKER
+══════════════════════════════ */
+.ticker-wrap{
+  overflow:hidden;padding:14px 0;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  margin:80px 0;
+}
+.ticker-inner{
+  display:flex;white-space:nowrap;
+  animation:ticker 22s linear infinite;
+}
+.ticker-item{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:16px;letter-spacing:3px;
+  padding:0 32px;color:var(--muted);
+  display:inline-flex;align-items:center;gap:16px;
+}
+.ticker-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);flex-shrink:0}
+
+/* ══════════════════════════════
+   SECTION HEADERS
+══════════════════════════════ */
+.sec-header{text-align:center;margin-bottom:56px}
+.sec-label{
+  display:inline-block;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--blue);
+  margin-bottom:14px;
+}
+.sec-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(40px,5vw,64px);
+  letter-spacing:2px;color:#fff;line-height:1;
+  margin-bottom:14px;
+}
+.sec-sub{font-size:15px;color:var(--sub);max-width:480px;margin:0 auto;line-height:1.7}
+
+/* ══════════════════════════════
+   SCREENS — tilted phone mockups
+══════════════════════════════ */
+.screens-section{padding:0 0 100px}
+.screens-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;
+  align-items:end;
+  perspective:1200px;
+}
+.phone{
+  border-radius:20px;overflow:hidden;
+  border:1px solid var(--border);
+  background:var(--bg2);
+  box-shadow:0 40px 80px rgba(0,0,0,.6);
+  transition:transform .4s ease,box-shadow .4s ease;
+}
+.phone:hover{box-shadow:0 60px 100px rgba(0,180,255,.15);transform:translateY(-8px) !important}
+.phone:nth-child(1){transform:rotateY(6deg) rotateX(3deg) translateY(20px)}
+.phone:nth-child(2){transform:rotateY(0deg) scale(1.04)}
+.phone:nth-child(3){transform:rotateY(-6deg) rotateX(3deg) translateY(20px)}
+
+.phone-chrome{
+  background:linear-gradient(180deg,#131C2E,#0C1420);
+  border-bottom:1px solid var(--border);
+  padding:8px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.phone-dot{width:8px;height:8px;border-radius:50%}
+.phone-screen{font-family:'DM Mono',monospace;font-size:9.5px;color:#647080}
+.phone-cap{
+  padding:10px 14px;
+  font-size:11px;font-weight:600;color:var(--muted);
+  background:var(--bg3);border-top:1px solid var(--border);
+  text-align:center;letter-spacing:.5px;text-transform:uppercase;
+}
+
+/* ── Dark UI inside phones ── */
+.ui-nav{
+  background:#070C14;border-bottom:1px solid #1A2235;
+  padding:8px 12px;display:flex;align-items:center;justify-content:space-between;
+}
+.ui-c{background:#111827;border:1px solid #1A2235;border-radius:7px;padding:8px;margin-bottom:4px}
+.ui-w{color:#E8EFF8}.ui-b{color:#00B4FF}.ui-g{color:#00E676}.ui-a{color:#FFB800}.ui-m{color:#4A5A72}
+.ui-pb{background:#1A2235;border-radius:2px;height:2.5px;overflow:hidden;margin-top:3px}
+.ui-ans{border:1px solid #1A2235;border-radius:5px;padding:5px 8px;margin-bottom:3px;display:flex;align-items:center;gap:7px;font-size:9px;color:#8899AA}
+.ui-ans.cor{border-color:#00E676;background:rgba(0,230,118,.07)}
+.ui-ans.sel{border-color:#00B4FF;background:rgba(0,180,255,.07)}
+.ui-L{width:15px;height:15px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;flex-shrink:0;background:#111827;border:1px solid #283548;color:#4A5A72}
+.ui-tag{background:rgba(0,180,255,.08);border:1px solid rgba(0,180,255,.18);color:#5DB8E8;border-radius:3px;padding:1px 5px;font-size:7.5px;display:inline-block;margin-right:3px;margin-top:3px}
+.ui-lbl{font-size:7px;text-transform:uppercase;letter-spacing:.8px;color:#3A4A62;margin-bottom:2px}
+
+/* ══════════════════════════════
+   ADMIN PANEL — full width
+══════════════════════════════ */
+.admin-section{padding:0 0 100px}
+.admin-frame{
+  border-radius:20px;overflow:hidden;
+  border:1px solid var(--border);
+  box-shadow:0 60px 120px rgba(0,0,0,.7),0 0 0 1px rgba(0,180,255,.05);
+}
+.browser-bar{
+  background:#080D17;
+  border-bottom:1px solid var(--border);
+  padding:8px 16px;display:flex;align-items:center;gap:10px;
+}
+.b-dots{display:flex;gap:6px}
+.b-dot{width:9px;height:9px;border-radius:50%}
+.b-url{
+  flex:1;background:#0C1420;border-radius:5px;
+  padding:4px 12px;font-family:'DM Mono',monospace;font-size:9px;color:#3A4A62;
+}
+.b-admin-badge{
+  font-size:9px;font-weight:700;letter-spacing:1px;
+  padding:3px 9px;border-radius:12px;
+  background:rgba(0,230,118,.08);color:#00E676;
+  border:1px solid rgba(0,230,118,.2);
+}
+.admin-body{
+  display:flex;height:320px;
+  background:#07090F;font-family:'DM Mono',monospace;font-size:9.5px;color:#4A5A72;
+}
+.a-sidebar{
+  width:148px;background:#050810;
+  border-right:1px solid #0E1520;
+  padding:10px 6px;flex-shrink:0;
+}
+.a-sid-lbl{
+  font-size:7px;text-transform:uppercase;letter-spacing:1.5px;
+  color:#1E2E45;padding:0 6px;margin-bottom:8px;
+}
+.a-link{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 7px;border-radius:5px;margin-bottom:2px;
+  font-size:8.5px;color:#3A4A62;
+}
+.a-link.on{
+  background:rgba(0,180,255,.08);
+  border-left:2px solid #00B4FF;
+  color:#00B4FF;font-weight:700;
+  padding-left:5px;
+}
+.a-notice{
+  margin-top:12px;padding:7px;
+  background:rgba(0,180,255,.04);
+  border:1px solid rgba(0,180,255,.08);
+  border-radius:6px;
+  font-size:7.5px;color:#2A3A55;line-height:1.5;
+}
+.a-editor{
+  flex:1;padding:14px 16px;
+  border-right:1px solid #0E1520;overflow:hidden;
+}
+.a-preview{
+  flex:1;padding:14px 16px;
+  background:rgba(5,8,13,.8);overflow:hidden;
+}
+.a-tab-bar{display:flex;border-bottom:1px solid #1A2235;margin-bottom:10px}
+.a-tab{padding:4px 9px;font-size:8px;color:#3A4A62}
+.a-tab.on{color:#00B4FF;border-bottom:2px solid #00B4FF;margin-bottom:-1px;font-weight:700}
+.a-input{
+  background:#050810;border:1px solid #1A2235;border-radius:4px;
+  padding:5px 8px;margin-bottom:7px;font-size:8.5px;color:#8899AA;
+  width:100%;font-family:'DM Mono',monospace;line-height:1.5;
+  display:block;
+}
+.a-eq{
+  background:#030610;border:1px solid rgba(0,180,255,.15);
+  border-radius:4px;padding:5px 9px;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+
+/* ══════════════════════════════
+   FEATURES
+══════════════════════════════ */
+.features-section{padding:0 0 100px}
+.feat-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--border);
+  border-radius:20px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.feat-cell{
+  background:var(--bg2);padding:32px 28px;
+  transition:background .25s;
+  position:relative;overflow:hidden;
+}
+.feat-cell:hover{background:#0E1625}
+.feat-cell::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,180,255,.3),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.feat-cell:hover::before{opacity:1}
+.feat-icon{
+  width:44px;height:44px;border-radius:11px;
+  margin-bottom:18px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;
+}
+.feat-title{font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:-.3px}
+.feat-desc{font-size:13px;color:var(--sub);line-height:1.65}
+
+/* ══════════════════════════════
+   LEARNING FLOW DIAGRAM
+══════════════════════════════ */
+.flow-section{padding:0 0 100px}
+.flow-row{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;flex-wrap:nowrap;
+}
+.flow-node{
+  text-align:center;padding:24px 28px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;min-width:150px;
+  transition:border-color .25s;
+}
+.flow-node:hover{border-color:var(--blue)}
+.flow-node-num{
+  font-family:'Bebas Neue',sans-serif;font-size:32px;
+  line-height:1;margin-bottom:4px;
+}
+.flow-node-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:.3px}
+.flow-node-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.flow-arrow{
+  font-size:20px;color:var(--border);padding:0 10px;
+  flex-shrink:0;
+}
+.flow-special{
+  background:linear-gradient(135deg,rgba(255,184,0,.06),rgba(255,184,0,.02));
+  border-color:rgba(255,184,0,.25);
+}
+.flow-special:hover{border-color:var(--gold)}
+
+/* ══════════════════════════════
+   COMING SOON
+══════════════════════════════ */
+.soon-section{
+  padding:0 0 100px;
+  text-align:center;
+}
+.soon-pills{
+  display:flex;flex-wrap:wrap;gap:10px;
+  justify-content:center;margin-top:36px;
+}
+.soon-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;padding:10px 20px;border-radius:30px;
+  background:var(--bg2);color:var(--sub);
+  border:1px solid var(--border);
+  transition:all .2s;
+}
+.soon-pill:hover{color:var(--text);border-color:var(--blue);background:rgba(0,180,255,.06)}
+.soon-pill-dot{width:7px;height:7px;border-radius:50%}
+
+/* ══════════════════════════════
+   FOOTER
+══════════════════════════════ */
+footer{
+  border-top:1px solid var(--border);
+  padding:32px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;
+  max-width:1180px;margin:0 auto;
+}
+.footer-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:18px;letter-spacing:3px;color:var(--muted);
+}
+.footer-tagline{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:#1E2E45;letter-spacing:2px;text-transform:uppercase;
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:900px){
+  .screens-grid{grid-template-columns:1fr;max-width:360px;margin:0 auto}
+  .phone:nth-child(1),.phone:nth-child(3){display:none}
+  .feat-grid{grid-template-columns:1fr 1fr}
+  .stats-strip{flex-wrap:wrap}
+  .flow-row{flex-wrap:wrap}
+  .admin-body{height:auto;flex-direction:column}
+  .a-sidebar{width:100%;border-right:none;border-bottom:1px solid #0E1520}
+}
+@media(max-width:600px){
+  .feat-grid{grid-template-columns:1fr}
+  .hero-title{font-size:60px}
+}
+</style>
+</head>
+<body>
+
+<!-- Atmosphere -->
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" fill="#00B4FF"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4" stroke="#00B4FF" stroke-width="1.3" fill="none"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4" stroke="#00B4FF" stroke-width="1.3" fill="none" transform="rotate(60 12 12)"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4" stroke="#00B4FF" stroke-width="1.3" fill="none" transform="rotate(120 12 12)"/>
+        </svg>
+      </div>
+      <span class="nav-name">Physics Gym</span>
+    </div>
+    <div class="nav-right">
+      <div class="live-dot"></div>
+      <span class="nav-stat">In Development</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<section style="padding-top:58px">
+  <div class="page hero">
+    <div class="hero-eyebrow">
+      <span></span>
+      Launching soon for JEE · NEET · Board Exams
+    </div>
+
+    <!-- Atom -->
+    <div class="atom-wrap">
+      <div class="atom-ring"></div>
+      <div class="atom-ring"></div>
+      <div class="atom-ring"></div>
+      <svg width="120" height="120" viewBox="0 0 120 120" fill="none" style="position:relative;z-index:1">
+        <circle cx="60" cy="60" r="8" fill="#00B4FF"/>
+        <circle cx="60" cy="60" r="16" fill="rgba(0,180,255,.12)" stroke="rgba(0,180,255,.3)" stroke-width="1"/>
+        <!-- orbit 1 -->
+        <ellipse cx="60" cy="60" rx="52" ry="20" stroke="rgba(0,180,255,.25)" stroke-width="1" fill="none"/>
+        <circle cx="112" cy="60" r="4" fill="#00E5FF"/>
+        <!-- orbit 2 -->
+        <ellipse cx="60" cy="60" rx="52" ry="20" stroke="rgba(0,229,255,.2)" stroke-width="1" fill="none" transform="rotate(60 60 60)"/>
+        <circle cx="86" cy="105" r="3.5" fill="#00B4FF" transform="rotate(0 60 60)"/>
+        <!-- orbit 3 -->
+        <ellipse cx="60" cy="60" rx="52" ry="20" stroke="rgba(255,184,0,.15)" stroke-width="1" fill="none" transform="rotate(120 60 60)"/>
+        <circle cx="34" cy="105" r="3" fill="#FFB800"/>
+      </svg>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="line1">Train Your Mind.</span>
+      <span class="line2">Master Physics.</span>
+    </h1>
+    <p class="hero-sub">
+      Not a YouTube playlist. Not a PDF dump.<br>
+      A <strong>training ground</strong> — where you show up, you solve, and you get stronger. Every single day.
+    </p>
+    <div class="hero-cta">
+      <a href="#screens" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3M2 12h12" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        See How It Works
+      </a>
+      <button class="btn-ghost">Watch Feature Tour →</button>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-item">
+        <div class="stat-val" style="color:var(--blue)">8</div>
+        <div class="stat-lab">Core chapters</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" style="color:var(--cyan)">3</div>
+        <div class="stat-lab">Stages per chapter</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" style="color:var(--gold)">10</div>
+        <div class="stat-lab">Fusion questions</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" style="color:var(--green)">70%</div>
+        <div class="stat-lab">Pass threshold</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TICKER ═══ -->
+<div class="ticker-wrap">
+  <div class="ticker-inner">
+    <!-- repeated twice for seamless loop -->
+    <span class="ticker-item"><span class="ticker-dot"></span>Kinematics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Newton's Laws</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Work &amp; Energy</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Momentum</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Gravitation</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Electrostatics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Current &amp; Circuits</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Waves &amp; Optics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Fusion Mode</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Daily Streak</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Smart Refinement</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Live Analytics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Kinematics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Newton's Laws</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Work &amp; Energy</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Momentum</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Gravitation</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Electrostatics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Current &amp; Circuits</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Waves &amp; Optics</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Fusion Mode</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Daily Streak</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Smart Refinement</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Live Analytics</span>
+  </div>
+</div>
+
+<!-- ═══ APP SCREENS ═══ -->
+<section id="screens" class="screens-section">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-label">The Experience</div>
+      <div class="sec-title">Built for Serious Students</div>
+      <div class="sec-sub">Every screen designed to keep you in the zone — from your daily practice to the final fusion test.</div>
+    </div>
+
+    <div class="screens-grid">
+
+      <!-- Phone 1 — Dashboard -->
+      <div class="phone">
+        <div class="phone-chrome">
+          <span class="ui-b" style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace">Physics Gym</span>
+          <div style="display:flex;align-items:center;gap:5px;background:#0A1020;padding:2px 8px;border-radius:10px">
+            <span style="width:6px;height:6px;border-radius:50%;background:#FFB800;display:inline-block"></span>
+            <span style="color:#FFB800;font-size:8px;font-family:'DM Mono',monospace;font-weight:700">5 day streak 🔥</span>
+          </div>
+        </div>
+        <div class="phone-screen" style="background:#07090F">
+          <div style="padding:12px">
+            <div class="ui-lbl">Welcome back</div>
+            <div class="ui-w" style="font-size:15px;font-weight:800;margin-bottom:12px;font-family:'Manrope',sans-serif">Aryan Kumar</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:12px">
+              <div style="background:#0E1520;border:1px solid #1A2235;border-radius:8px;padding:8px;text-align:center">
+                <div class="ui-g" style="font-size:16px;font-weight:800;font-family:'Bebas Neue',sans-serif;letter-spacing:1px">3</div>
+                <div class="ui-m" style="font-size:7.5px;margin-top:2px">Stable</div>
+              </div>
+              <div style="background:#0E1520;border:1px solid #1A2235;border-radius:8px;padding:8px;text-align:center">
+                <div class="ui-b" style="font-size:16px;font-weight:800;font-family:'Bebas Neue',sans-serif;letter-spacing:1px">8</div>
+                <div class="ui-m" style="font-size:7.5px;margin-top:2px">Chapters</div>
+              </div>
+              <div style="background:#0E1520;border:1px solid rgba(255,184,0,.2);border-radius:8px;padding:8px;text-align:center">
+                <div class="ui-a" style="font-size:16px;font-weight:800;font-family:'Bebas Neue',sans-serif;letter-spacing:1px">5</div>
+                <div class="ui-m" style="font-size:7.5px;margin-top:2px">Streak</div>
+              </div>
+            </div>
+            <div class="ui-lbl" style="margin-bottom:6px">Your Chapters</div>
+            <div class="ui-c">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span class="ui-w" style="font-size:10px;font-weight:700;font-family:'Manrope',sans-serif">Kinematics</span>
+                <span class="ui-b" style="font-size:8px">In progress</span>
+              </div>
+              <div class="ui-pb"><div style="width:33%;height:100%;background:#00B4FF;border-radius:2px"></div></div>
+              <div class="ui-m" style="font-size:8px;margin-top:3px">Stage 1 / 3</div>
+            </div>
+            <div class="ui-c" style="border-color:rgba(0,230,118,.3)">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span class="ui-w" style="font-size:10px;font-weight:700;font-family:'Manrope',sans-serif">Newton's Laws</span>
+                <span class="ui-g" style="font-size:8px">✓ Stable</span>
+              </div>
+              <div class="ui-pb"><div style="width:100%;height:100%;background:#00E676;border-radius:2px"></div></div>
+              <div class="ui-g" style="font-size:8px;margin-top:3px">All 3 stages done</div>
+            </div>
+            <div class="ui-c" style="border-color:rgba(255,184,0,.3)">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span class="ui-w" style="font-size:10px;font-weight:700;font-family:'Manrope',sans-serif">Work &amp; Energy</span>
+                <span class="ui-a" style="font-size:8px">⚡ Fusion ready</span>
+              </div>
+              <div class="ui-pb"><div style="width:100%;height:100%;background:#FFB800;border-radius:2px"></div></div>
+              <div class="ui-a" style="font-size:8px;margin-top:3px">Ready to test your mastery</div>
+            </div>
+            <div class="ui-c">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span class="ui-w" style="font-size:10px;font-weight:700;font-family:'Manrope',sans-serif">Momentum</span>
+                <span class="ui-m" style="font-size:8px">Not started</span>
+              </div>
+              <div class="ui-pb"></div>
+              <div class="ui-m" style="font-size:8px;margin-top:3px">0 / 3 stages</div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-cap">Dashboard</div>
+      </div>
+
+      <!-- Phone 2 — Question (CENTER, larger) -->
+      <div class="phone" style="border-color:rgba(0,180,255,.25);box-shadow:0 0 60px rgba(0,180,255,.12),0 40px 80px rgba(0,0,0,.7)">
+        <div class="phone-chrome" style="background:#050A14;border-bottom-color:rgba(0,180,255,.15)">
+          <span class="ui-m" style="font-size:9px">← Newton's Laws</span>
+          <span style="font-size:8px;font-family:'DM Mono',monospace;color:#00B4FF;background:rgba(0,180,255,.08);padding:2px 8px;border-radius:8px;font-weight:700">3 / 5</span>
+        </div>
+        <div class="phone-screen" style="background:#07090F">
+          <div style="height:3px;background:#0E1520"><div style="width:60%;height:100%;background:linear-gradient(90deg,#00B4FF,#00E5FF)"></div></div>
+          <div style="padding:13px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+              <span style="font-size:9px;color:#00B4FF;border:1px solid rgba(0,180,255,.2);background:rgba(0,180,255,.07);border-radius:4px;padding:3px 8px;font-weight:700;font-family:'DM Mono',monospace">Stage 2 — Applied</span>
+              <span class="ui-a" style="font-size:8.5px;font-weight:600">Medium</span>
+            </div>
+            <div class="ui-c" style="margin-bottom:10px;padding:10px;border-color:rgba(0,180,255,.1)">
+              <p class="ui-w" style="font-size:10.5px;line-height:1.65;margin:0 0 8px;font-family:'Manrope',sans-serif;font-weight:500">A 5 kg object experiences a net force of 20 N. What is its acceleration?</p>
+              <div style="background:#030610;border-radius:5px;padding:6px 10px;text-align:center;border:1px solid rgba(0,180,255,.1)">
+                <span style="color:#00B4FF;font-family:'DM Mono',monospace;font-size:12px">F = ma</span>
+              </div>
+            </div>
+            <div class="ui-ans"><div class="ui-L">A</div><span>1 m/s²</span></div>
+            <div class="ui-ans"><div class="ui-L">B</div><span>2 m/s²</span></div>
+            <div class="ui-ans cor">
+              <div class="ui-L" style="background:rgba(0,230,118,.12);border-color:#00E676;color:#00E676">C</div>
+              <span style="color:#00E676;flex:1;font-weight:700">4 m/s²</span>
+              <span class="ui-g" style="font-size:13px">✓</span>
+            </div>
+            <div class="ui-ans"><div class="ui-L">D</div><span>10 m/s²</span></div>
+            <div style="background:rgba(0,180,255,.04);border-left:2px solid #00B4FF;border-radius:0 6px 6px 0;padding:8px 10px;margin-top:10px">
+              <div class="ui-lbl" style="margin-bottom:3px">Explanation</div>
+              <div style="font-size:9px;color:#8899AA;line-height:1.55;font-family:'Manrope',sans-serif">Using F = ma: a = 20/5 = 4 m/s². Newton's second law directly links net force, mass and acceleration.</div>
+            </div>
+            <div style="margin-top:9px">
+              <span class="ui-tag">newton_second_law</span>
+              <span class="ui-tag">force</span>
+              <span class="ui-tag">mass</span>
+            </div>
+          </div>
+        </div>
+        <div class="phone-cap" style="color:var(--blue)">Question Practice</div>
+      </div>
+
+      <!-- Phone 3 — Fusion Mode -->
+      <div class="phone">
+        <div class="phone-chrome" style="background:#080C0A;border-bottom-color:rgba(255,184,0,.15)">
+          <div>
+            <div class="ui-a" style="font-size:10.5px;font-weight:800;font-family:'Bebas Neue',sans-serif;letter-spacing:1.5px">⚡ FUSION MODE</div>
+            <div class="ui-m" style="font-size:7.5px;margin-top:1px">Kinematics</div>
+          </div>
+          <span class="ui-m" style="font-size:9px;font-family:'DM Mono',monospace">7 / 10</span>
+        </div>
+        <div class="phone-screen" style="background:#07090F">
+          <div style="padding:12px">
+            <div style="margin-bottom:10px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                <span class="ui-m" style="font-size:8.5px">Time remaining</span>
+                <span style="color:#FFB800;font-family:'DM Mono',monospace;font-size:15px;font-weight:700">47s</span>
+              </div>
+              <div style="background:#0E1520;border-radius:3px;height:6px;overflow:hidden">
+                <div style="width:52%;height:100%;background:linear-gradient(90deg,#FFB800,#FF8C00);border-radius:3px"></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <div style="height:1px;flex:1;background:#0E1520"></div>
+              <span class="ui-m" style="font-size:8px;font-family:'DM Mono',monospace">attempt 7 of 10</span>
+              <div style="height:1px;flex:1;background:#0E1520"></div>
+            </div>
+            <div class="ui-c" style="border-color:rgba(255,184,0,.12);margin-bottom:10px;padding:10px">
+              <p class="ui-w" style="font-size:10.5px;line-height:1.6;margin:0 0 7px;font-family:'Manrope',sans-serif;font-weight:500">A particle: x = 3t² − 6t + 2. Find velocity at t = 3s.</p>
+              <div style="background:#030610;border-radius:5px;padding:5px 9px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,184,0,.1)">
+                <span style="color:#00B4FF;font-family:'DM Mono',monospace;font-size:9px">v = dx/dt</span>
+                <span class="ui-m">⟹</span>
+                <span style="color:#00B4FF;font-family:'DM Mono',monospace;font-size:9px">v = 6t − 6</span>
+              </div>
+            </div>
+            <div class="ui-ans sel"><div class="ui-L" style="background:rgba(0,180,255,.12);border-color:#00B4FF;color:#00B4FF">A</div><span style="color:#60C0E8">3 m/s</span></div>
+            <div class="ui-ans"><div class="ui-L">B</div><span>6 m/s</span></div>
+            <div class="ui-ans"><div class="ui-L">C</div><span>12 m/s</span></div>
+            <div class="ui-ans"><div class="ui-L">D</div><span>18 m/s</span></div>
+            <div style="margin-top:10px;display:flex;justify-content:space-between;background:#0E1520;border-radius:8px;padding:8px 12px">
+              <span class="ui-m" style="font-size:9px">Score so far</span>
+              <span style="color:#00E676;font-size:11px;font-weight:800;font-family:'DM Mono',monospace">6 / 7 ✓</span>
+            </div>
+          </div>
+        </div>
+        <div class="phone-cap" style="color:#FFB800">Fusion Mode — Timed Test</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ADMIN PANEL ═══ -->
+<section class="admin-section">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-label">For Educators</div>
+      <div class="sec-title">The Content Studio</div>
+      <div class="sec-sub">A full admin panel so physics experts can build, upload, and manage questions — no code, no SQL. Just expertise.</div>
+    </div>
+
+    <div class="admin-frame">
+      <div class="browser-bar">
+        <div class="b-dots">
+          <div class="b-dot" style="background:#FF5F57"></div>
+          <div class="b-dot" style="background:#FEBC2E"></div>
+          <div class="b-dot" style="background:#28C840"></div>
+        </div>
+        <div class="b-url">physicsgym.app/admin/questions/new</div>
+        <span class="b-admin-badge">✓ Admin</span>
+      </div>
+      <div class="admin-body">
+
+        <!-- Sidebar -->
+        <div class="a-sidebar">
+          <div class="a-sid-lbl">Admin Panel</div>
+          <div class="a-link"><span style="width:14px;text-align:center;font-size:11px">◈</span>Overview</div>
+          <div class="a-link"><span style="width:14px;text-align:center;font-size:11px">📚</span>Chapters</div>
+          <div class="a-link"><span style="width:14px;text-align:center;font-size:11px">📋</span>All Questions</div>
+          <div class="a-link on"><span style="width:14px;text-align:center;font-size:11px">＋</span>Add Question</div>
+          <div class="a-link"><span style="width:14px;text-align:center;font-size:11px">⬆</span>Bulk Upload</div>
+          <div class="a-notice">Questions go live for students immediately after saving — no approval needed.</div>
+        </div>
+
+        <!-- Editor -->
+        <div class="a-editor">
+          <div style="font-size:15px;font-weight:800;color:#E8EFF8;margin-bottom:10px;font-family:'Manrope',sans-serif">Add Question</div>
+          <div class="a-tab-bar">
+            <div class="a-tab on">Question Text</div>
+            <div class="a-tab">Options &amp; Answer</div>
+            <div class="a-tab">Settings &amp; Tags</div>
+          </div>
+          <div class="ui-lbl">Question text *</div>
+          <div class="a-input">A 5 kg object experiences a net force of 20 N. What is its acceleration?</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span class="ui-lbl" style="margin:0">Equation block (LaTeX)</span>
+            <span style="color:#00B4FF;font-size:8px;cursor:pointer">+ add block</span>
+          </div>
+          <div class="a-eq">
+            <span style="color:#00B4FF;font-family:'DM Mono',monospace;font-size:12px">F = ma</span>
+            <span class="ui-m" style="font-size:8px">math-field ✏</span>
+          </div>
+          <div class="ui-lbl">Explanation (shown to student after answering)</div>
+          <div class="a-input" style="color:#2A3A55">Using F = ma: a = F/m = 20/5 = 4 m/s²</div>
+          <div style="margin-top:4px">
+            <span class="ui-tag">newton_second_law</span>
+            <span class="ui-tag">force</span>
+            <span class="ui-tag">mass</span>
+            <span style="color:#00B4FF;font-size:8px;cursor:pointer"> + add tag</span>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="a-preview">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+            <div style="width:6px;height:6px;border-radius:50%;background:#00E676"></div>
+            <span style="font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:#2A3A55;font-family:'DM Mono',monospace">Live Student Preview</span>
+          </div>
+          <div style="background:#0E1520;border:1px solid rgba(0,180,255,.1);border-radius:11px;padding:14px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span style="font-size:8px;color:#00B4FF;border:1px solid rgba(0,180,255,.2);border-radius:4px;padding:2px 7px;font-family:'DM Mono',monospace;font-weight:700">Stage 2</span>
+              <span class="ui-a" style="font-size:8.5px;font-weight:600">Medium</span>
+            </div>
+            <p class="ui-w" style="font-size:10.5px;line-height:1.65;margin:0 0 8px;font-family:'Manrope',sans-serif;font-weight:500">A 5 kg object experiences a net force of 20 N. What is its acceleration?</p>
+            <div style="background:#030610;border-radius:5px;padding:6px;text-align:center;margin-bottom:10px;border:1px solid rgba(0,180,255,.1)">
+              <span style="color:#00B4FF;font-family:'DM Mono',monospace;font-size:12px">F = ma</span>
+            </div>
+            <div style="border:1px solid #1A2235;border-radius:5px;padding:5px 8px;margin-bottom:3px;font-size:9px;color:#8899AA;display:flex;gap:8px"><span class="ui-m">A</span>1 m/s²</div>
+            <div style="border:1px solid #1A2235;border-radius:5px;padding:5px 8px;margin-bottom:3px;font-size:9px;color:#8899AA;display:flex;gap:8px"><span class="ui-m">B</span>2 m/s²</div>
+            <div style="border:1px solid #00E676;background:rgba(0,230,118,.06);border-radius:5px;padding:5px 8px;margin-bottom:3px;font-size:9px;display:flex;justify-content:space-between"><span style="display:flex;gap:8px;color:#00E676"><span class="ui-g">C</span>4 m/s²</span><span class="ui-g" style="font-weight:800">✓ Correct</span></div>
+            <div style="border:1px solid #1A2235;border-radius:5px;padding:5px 8px;font-size:9px;color:#8899AA;display:flex;gap:8px"><span class="ui-m">D</span>10 m/s²</div>
+          </div>
+        </div>
+
+      </div>
+      <div style="padding:9px 16px;background:#050810;border-top:1px solid #0E1520;font-size:11px;color:#2A3A55;font-family:'DM Mono',monospace;text-align:center;letter-spacing:.5px">
+        Admin panel · question editor with live student preview · bulk CSV upload · chapter management
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ LEARNING FLOW ═══ -->
+<section class="flow-section">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-label">The System</div>
+      <div class="sec-title">How Mastery Works</div>
+      <div class="sec-sub">A proven progression loop that keeps every student moving forward — never stuck, never coasting.</div>
+    </div>
+    <div class="flow-row">
+      <div class="flow-node">
+        <div class="flow-node-num" style="color:var(--blue)">1</div>
+        <div class="flow-node-label">Stage 1</div>
+        <div class="flow-node-desc">Conceptual<br>understanding</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-node-num" style="color:var(--cyan)">2</div>
+        <div class="flow-node-label">Stage 2</div>
+        <div class="flow-node-desc">Formula<br>application</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node">
+        <div class="flow-node-num" style="color:var(--blue)">3</div>
+        <div class="flow-node-label">Stage 3</div>
+        <div class="flow-node-desc">Multi-step<br>reasoning</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node flow-special">
+        <div class="flow-node-num" style="color:var(--gold)">⚡</div>
+        <div class="flow-node-label" style="color:var(--gold)">Fusion</div>
+        <div class="flow-node-desc">10 timed Qs<br>≥70% to pass</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:rgba(0,230,118,.25)">
+        <div class="flow-node-num" style="color:var(--green)">✓</div>
+        <div class="flow-node-label" style="color:var(--green)">Stable</div>
+        <div class="flow-node-desc">Chapter<br>mastered</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:20px">
+      <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Fail Fusion?</span>
+      <span style="font-size:12px;color:var(--sub);font-family:'DM Mono',monospace"> → Smart Refinement targets your exact weak concepts → Retry Fusion</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-label">What's Inside</div>
+      <div class="sec-title">Built Different</div>
+    </div>
+    <div class="feat-grid">
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(0,180,255,.08);border:1px solid rgba(0,180,255,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12h4M8 6h4M13 18h4" stroke="#00B4FF" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+        <div class="feat-title">3-Stage Mastery</div>
+        <div class="feat-desc">You earn the right to go harder. Conceptual → Applied → Multi-step. No skipping, no shortcuts.</div>
+      </div>
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke="#FFB800" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="feat-title">Fusion Mode</div>
+        <div class="feat-desc">10 timed questions. 90 seconds each. This is where confidence is built — or weaknesses are exposed.</div>
+      </div>
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#FF4757" stroke-width="1.8" fill="none"/><path d="M12 7v5l3 3" stroke="#FF4757" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <div class="feat-title">Smart Refinement</div>
+        <div class="feat-desc">The system identifies exactly which concept tags you got wrong. No wasted time — precision improvement only.</div>
+      </div>
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(255,184,0,.08);border:1px solid rgba(255,184,0,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 21s-8-5.5-8-11a8 8 0 0116 0c0 5.5-8 11-8 11z" stroke="#FFB800" stroke-width="1.8" fill="none"/></svg>
+        </div>
+        <div class="feat-title">Daily Streak</div>
+        <div class="feat-desc">Show up today. Then tomorrow. Physics isn't learned in one sitting. The streak is your proof of discipline.</div>
+      </div>
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="2,17 7,12 11,15 17,8 22,12" stroke="#00E676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <div class="feat-title">Personal Analytics</div>
+        <div class="feat-desc">Accuracy, speed, concept-level gaps. See exactly where you're strong and where you're bleeding marks.</div>
+      </div>
+
+      <div class="feat-cell">
+        <div class="feat-icon" style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 6H21l-5 3.8 1.9 6.2L12 15l-5.9 4 1.9-6.2L3 9h6.5L12 3z" stroke="#A78BFA" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="feat-title">Leaderboard</div>
+        <div class="feat-desc">Ranked by streak and progress. A little friendly competition keeps the fire burning.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMING SOON ═══ -->
+<section class="soon-section">
+  <div class="page">
+    <div class="sec-header">
+      <div class="sec-label">What's Next</div>
+      <div class="sec-title">The Roadmap</div>
+      <div class="sec-sub">We're just getting started. Here's what's being built right now.</div>
+    </div>
+    <div class="soon-pills">
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#00B4FF"></span>AI step-by-step explanations</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#00E676"></span>Mobile app (Android + iOS)</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#FFB800"></span>Full mock tests</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#A78BFA"></span>Adaptive question engine</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#FF4757"></span>Teacher & school dashboard</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#00E5FF"></span>Video solution links</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#00B4FF"></span>Chapter-wise test series</div>
+      <div class="soon-pill"><span class="soon-pill-dot" style="background:#FFB800"></span>Performance reports (PDF)</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div class="footer-logo">⚛ Physics Gym</div>
+  <div class="footer-tagline">Train your mind · Master the physics · 2025</div>
+</footer>
+
+</body>
+</html>
